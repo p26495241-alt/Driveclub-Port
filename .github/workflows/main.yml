@@ -1,0 +1,32 @@
+name: Build Windows launcher
+
+# Put this file at .github/workflows/build-windows-launcher.yml in your fork,
+# then run it from the Actions tab (Run workflow).
+on:
+  workflow_dispatch:
+
+jobs:
+  launcher:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        edition: [nofsr, fsr]
+    defaults:
+      run:
+        shell: bash
+        working-directory: windows/launcher
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Dependencies
+        run: python -m pip install pillow pytest pyinstaller capstone
+      - name: Tests
+        run: python -m pytest
+      - name: Build DriveClub.exe
+        run: bash build.sh ${{ matrix.edition }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DriveClub-launcher-${{ matrix.edition }}
+          path: windows/launcher/dist/${{ matrix.edition }}/DriveClub.exe
